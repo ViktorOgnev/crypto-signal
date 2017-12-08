@@ -1,9 +1,10 @@
-import os
 import requests
 import urllib
 
-TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN')
-BOTURL = f"https://api.telegram.org/bot{TG_BOT_TOKEN}"
+import settings
+
+
+BOTURL = f"https://api.telegram.org/bot{settings.tg_bot_token}"
 
 
 def get(url):

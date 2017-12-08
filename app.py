@@ -1,23 +1,15 @@
 from bittrex import Bittrex
-import json
 import sys
-import stream
 import time
 
 
 from twilio.rest import Client
 
-# Creating an instance of the Bittrex class with our secrets.json file
-with open("secrets.json") as secrets_file:
-    secrets = json.load(secrets_file)
-    secrets_file.close()
-    my_bittrex = Bittrex(secrets['bittrex_key'], secrets['bittrex_secret'])
+import stream
+import settings
 
-# Setting up Twilio for SMS alerts
-account_sid = secrets['twilio_key']
-auth_token = secrets['twilio_secret']
-client = Client(account_sid, auth_token)
-
+client = Client(settings.account_sid, settings.auth_token)
+my_bittrex = Bittrex(settings.secrets['bittrex_key'], settings.secrets['bittrex_secret'])
 
 # Let's test an API call to get our BTC balance as a test
 # print(my_bittrex.get_balance('BTC')['result']['Balance'])
@@ -37,7 +29,7 @@ def getClosingPrices(coin_pair, period, unit):
     :return: Array of closing prices
     """
 
-    historical_data = my_bittrex.getHistoricalData(coin_pair, period, unit)
+    historical_data = settings.my_bittrex.getHistoricalData(coin_pair, period, unit)
     closing_prices = []
     for i in historical_data:
         closing_prices.append(i['C'])
@@ -60,7 +52,6 @@ def calculateEMA(coin_pair, period, unit):
 
     closing_prices = getClosingPrices(coin_pair, period, unit)
     previous_EMA = calculateSMA(coin_pair, period, unit)
-    constant = (2 / (period + 1))
     current_EMA = (closing_prices[-1] * (2 / (1 + period))) + \
         (previous_EMA * (1 - (2 / (1 + period))))
     return current_EMA
@@ -172,8 +163,10 @@ def findBreakout(coin_pair, period, unit):
             hit += 1
 
     if (hit / period) >= .75:
-        message = client.api.account.messages.create(to=secrets['my_number'], from_=secrets[
-                                                     'twilio_number'], body="{} is breaking out!".format(coin_pair))
+        message = client.api.account.messages.create(
+            to=settings.secrets['my_number'],
+            from_=settings.secrets['twilio_number'],
+            body="{} is breaking out!".format(coin_pair))
         return "Breaking out!"
     else:
         return "#Bagholding"
