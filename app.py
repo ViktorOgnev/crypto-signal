@@ -1,7 +1,6 @@
 from bittrex import Bittrex
 import json
 import time
-import os
 from twilio.rest import Client
 
 # Creating an instance of the Bittrex class with our secrets.json file
@@ -19,9 +18,12 @@ client = Client(account_sid, auth_token)
 # Let's test an API call to get our BTC balance as a test
 # print(my_bittrex.get_balance('BTC')['result']['Balance'])
 
-coin_pairs = ['BTC-ETH', 'BTC-OMG', 'BTC-GNT', 'BTC-CVC', 'BTC-BAT', 'BTC-STRAT', 'BTC-LSK', 'BTC-BCC', 'BTC-NEO', 'BTC-OK', 'BTC-TRIG', 'BTC-PAY', 'BTC-XMR']
+coin_pairs = ['BTC-ETH', 'BTC-OMG', 'BTC-GNT', 'BTC-CVC', 'BTC-BAT', 'BTC-STRAT',
+              'BTC-LSK', 'BTC-BCC', 'BTC-NEO', 'BTC-OK', 'BTC-TRIG', 'BTC-PAY', 'BTC-XMR']
 
 #print(historical_data = my_bittrex.getHistoricalData('BTC-ETH', 30, "thirtyMin"))
+
+
 def getClosingPrices(coin_pair, period, unit):
     """
     Returns closing prices within a specified time frame for a coin pair
@@ -37,6 +39,7 @@ def getClosingPrices(coin_pair, period, unit):
         closing_prices.append(i['C'])
     return closing_prices
 
+
 def calculateSMA(coin_pair, period, unit):
     """
     Returns the Simple Moving Average for a coin pair
@@ -44,6 +47,7 @@ def calculateSMA(coin_pair, period, unit):
 
     total_closing = sum(getClosingPrices(coin_pair, period, unit))
     return (total_closing / period)
+
 
 def calculateEMA(coin_pair, period, unit):
     """
@@ -53,10 +57,14 @@ def calculateEMA(coin_pair, period, unit):
     closing_prices = getClosingPrices(coin_pair, period, unit)
     previous_EMA = calculateSMA(coin_pair, period, unit)
     constant = (2 / (period + 1))
-    current_EMA = (closing_prices[-1] * (2 / (1 + period))) + (previous_EMA * (1 - (2 / (1 + period))))
+    current_EMA = (closing_prices[-1] * (2 / (1 + period))) + \
+        (previous_EMA * (1 - (2 / (1 + period))))
     return current_EMA
 
-# Improvemnts to calculateRSI are courtesy of community contributor "pcartwright81"
+# Improvemnts to calculateRSI are courtesy of community contributor
+# "pcartwright81"
+
+
 def calculateRSI(coin_pair, period, unit):
     """
     Calculates the Relative Strength Index for a coin_pair
@@ -72,7 +80,7 @@ def calculateRSI(coin_pair, period, unit):
             change.append(i - closing_prices[count - 1])
         count += 1
         if count == 15:
-           break
+            break
     # Calculating gains and losses
     advances = []
     declines = []
@@ -87,20 +95,20 @@ def calculateRSI(coin_pair, period, unit):
     newAvgLoss = average_loss
     for i in closing_prices:
         if count > 14 and count < len(closing_prices):
-          close = closing_prices[count]
-          newChange = close - closing_prices[count - 1]
-          addLoss = 0;
-          addGain = 0;
-          if newChange > 0:
-              addGain = newChange
-          if newChange < 0:
-              addLoss = abs(newChange)
-          newAvgGain = (newAvgGain * 13 + addGain) / 14
-          newAvgLoss = (newAvgLoss * 13 + addLoss) / 14
-          count += 1
+            close = closing_prices[count]
+            newChange = close - closing_prices[count - 1]
+            addLoss = 0
+            addGain = 0
+            if newChange > 0:
+                addGain = newChange
+            if newChange < 0:
+                addLoss = abs(newChange)
+            newAvgGain = (newAvgGain * 13 + addGain) / 14
+            newAvgLoss = (newAvgLoss * 13 + addLoss) / 14
+            count += 1
 
-    rs = newAvgGain / newAvgLoss;
-    newRS = 100 - 100 / (1 + rs);
+    rs = newAvgGain / newAvgLoss
+    newRS = 100 - 100 / (1 + rs)
     return newRS
 
 
@@ -115,6 +123,7 @@ def calculateBaseLine(coin_pair, unit):
     period_low = min(closing_prices)
     return (period_high + period_low) / 2
 
+
 def calculateConversionLine(coin_pair, unit):
     """
     Calculates (9 period high + 9 period low) / 2
@@ -124,6 +133,7 @@ def calculateConversionLine(coin_pair, unit):
     period_high = max(closing_prices)
     period_low = min(closing_prices)
     return (period_high + period_low) / 2
+
 
 def calculateLeadingSpanA(coin_pair, unit):
     """
@@ -135,6 +145,7 @@ def calculateLeadingSpanA(coin_pair, unit):
     conversion_line = calculateConversionLine(coin_pair, unit)
     return (base_line + conversion_line) / 2
 
+
 def calculateLeadingSpanB(coin_pair, unit):
     """
     Calculates (52 period high + 52 period low) / 2
@@ -144,6 +155,7 @@ def calculateLeadingSpanB(coin_pair, unit):
     period_high = max(closing_prices)
     period_low = min(closing_prices)
     return (period_high + period_low) / 2
+
 
 def findBreakout(coin_pair, period, unit):
     """
@@ -156,7 +168,8 @@ def findBreakout(coin_pair, period, unit):
             hit += 1
 
     if (hit / period) >= .75:
-        message = client.api.account.messages.create(to=secrets['my_number'],from_=secrets['twilio_number'],body="{} is breaking out!".format(coin_pair))
+        message = client.api.account.messages.create(to=secrets['my_number'], from_=secrets[
+                                                     'twilio_number'], body="{} is breaking out!".format(coin_pair))
         return "Breaking out!"
     else:
         return "#Bagholding"
