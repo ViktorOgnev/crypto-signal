@@ -40,14 +40,22 @@ The contents of the file should mirror the following:
     "twilio_key": "TWILIO_API_KEY",
     "twilio_secret": "TWILIO_SECRET",
     "twilio_number": "TWILIO_PHONE_NUMBER",
-    "my_number": "YOUR_PHONE_NUMBER"
+    "my_number": "YOUR_PHONE_NUMBER",
+    "tg_bot_token": "YOUR_TELEGRAM_BOT_TOKEN"
 }
 ```
 
 If you don't want to use the Twilio notifications, you can remove the code
 
 # How to run
-Navigate to your file directory in terminal, run with "python app.py"
+Navigate to your file directory in terminal, run with 
+
+
+```shell
+python app.py telegram
+```
+where telegram is a stream option.
+Currently simple stdout printing and telegram bot messaging supported.
 
 # Liability
 I am not your financial advisor, nor is this tool. Use this program as an educational tool, and nothing more. None of the contributors to this project are liable for any loses you may incur. Be wise and always do your own research.
