@@ -1,6 +1,10 @@
 from bittrex import Bittrex
 import json
+import sys
+import stream
 import time
+
+
 from twilio.rest import Client
 
 # Creating an instance of the Bittrex class with our secrets.json file
@@ -176,11 +180,18 @@ def findBreakout(coin_pair, period, unit):
 
 
 if __name__ == "__main__":
+    try:
+        stream_type = sys.argv[1].lower().strip()
+    except IndexError:
+        stream_fn = print
+    else:
+        stream_fn = stream.mapping.get(stream_type, print)
+
     def get_signal():
         for i in coin_pairs:
             breakout = findBreakout(coin_pair=i, period=5, unit="fiveMin")
             rsi = calculateRSI(coin_pair=i, period=14, unit="thirtyMin")
-            print("{}: \tBreakout: {} \tRSI: {}".format(i, breakout, rsi))
+            stream_fn("{}: \tBreakout: {} \tRSI: {}".format(i, breakout, rsi))
         time.sleep(300)
     while True:
         get_signal()
